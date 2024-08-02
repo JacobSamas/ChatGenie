@@ -9,8 +9,8 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)  # Enables CORS for cross-origin requests from your front-end
 
-# Configure OpenAI API client
-openai = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 @app.route('/')
 def index():
@@ -23,14 +23,14 @@ def chat():
     if not user_input:
         return jsonify({'error': 'No message provided'}), 400
     
-    response = openai.chat_completions.create(
-        model="gpt-4o-mini",
+    response = client.chat.completions.create(
+        model="gpt-3.0-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": user_input}
         ]
     )
-    ai_response = response.choices[0].message['content'].strip()
+    ai_response = response.choices[0].message.content.strip()
     return jsonify({'response': ai_response})
 
 if __name__ == '__main__':
