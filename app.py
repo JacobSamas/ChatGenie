@@ -1,16 +1,16 @@
-from flask import Flask, request, jsonify, send_from_directory
-import openai
-from dotenv import load_dotenv
 import os
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+from dotenv import load_dotenv
+from openai import OpenAI
 
-# call .env file
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)  # Enables CORS for cross-origin requests from your front-end
 
-# OpenAI API key
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Configure OpenAI API client
+openai = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 @app.route('/')
 def index():
@@ -18,14 +18,20 @@ def index():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    user_input = request.json.get('message')
-    response = openai.Completion.create(
-        model="gpt-3.5-turbo",
-        prompt=f"User: {user_input}\nAI:",
-        max_tokens=50
+    data = request.json
+    user_input = data.get('message')
+    if not user_input:
+        return jsonify({'error': 'No message provided'}), 400
+    
+    response = openai.chat_completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": user_input}
+        ]
     )
-    ai_response = response.choices[0].text.strip()
+    ai_response = response.choices[0].message['content'].strip()
     return jsonify({'response': ai_response})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
