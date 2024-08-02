@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import openai
 from dotenv import load_dotenv
 import os
@@ -12,11 +12,15 @@ app = Flask(__name__)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+@app.route('/')
+def index():
+    return send_from_directory('.', 'index.html')
+
 @app.route('/chat', methods=['POST'])
 def chat():
     user_input = request.json.get('message')
     response = openai.Completion.create(
-        model="text-davinci-003",
+        model="gpt-3.5-turbo",
         prompt=f"User: {user_input}\nAI:",
         max_tokens=50
     )
